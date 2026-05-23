@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/nisarg1511/shortly/internal/handlers"
 	"github.com/nisarg1511/shortly/internal/models"
 	"github.com/nisarg1511/shortly/internal/services"
@@ -21,22 +23,24 @@ func main() {
 	}
 	cfg := models.Config{
 		Address: ":" + port,
-		DBSN:    "postgres://postgres:secret@localhost:5432/shortener?sslmode=disable",
+		DBSN:    os.Getenv("DB_CONN_STRING"),
 	}
-	db, _ := sql.Open("pgx", cfg.DBSN)
+	db, err := sql.Open("pgx", cfg.DBSN)
 
-	// if err != nil {
-	// 	log.Fatalf("Critical: Couldn't parse DSN %v\n", err)
-	// }
+	if err != nil {
+		log.Fatalf("Critical: Couldn't parse DSN %v\n", err)
+	}
 	defer db.Close()
 
-	// db.SetMaxOpenConns(25)
-	// db.SetMaxIdleConns(25)
-	// db.SetConnMaxLifetime(time.Minute * 5)
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+	db.SetConnMaxLifetime(time.Minute * 5)
 
-	// if err := db.Ping(); err != nil {
-	// 	log.Fatalf("Critical:Database is unreachable: %v\n", err)
-	// }
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Critical:Database is unreachable: %v\n", err)
+	}
+
+	log.Printf("Database connected successfully!\n")
 
 	app := &models.Application{
 		Config: cfg,
@@ -57,8 +61,10 @@ func main() {
 
 	//Services and handlers registration
 	linkHandler := handlers.NewLink(allServices.Links)
-
-	//Routes
+	healthHandler := handlers.NewHealth(allServices.HealthService)
+	//Health Routes
+	mux.HandleFunc("GET /health", healthHandler.CheckHealth)
+	//Link Routes
 	mux.HandleFunc("POST /shorten", linkHandler.Shorten)
 	mux.HandleFunc("GET /{code}", linkHandler.Redirect)
 

@@ -3,12 +3,14 @@ package store
 import "database/sql"
 
 type Store struct {
-	Links *LinkStore
+	Links  *LinkStore
+	Health *HealthStore
 }
 
 func NewStore(db *sql.DB) *Store {
 	return &Store{
-		Links: NewLinkStore(db),
+		Links:  NewLinkStore(db),
+		Health: NewHealthStore(db),
 		// Redis or cache stores can also be injected here later
 	}
 }

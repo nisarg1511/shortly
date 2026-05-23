@@ -5,3 +5,7 @@ type URLShortenRequest struct {
 	Code   string `json:"code"`
 	Expiry int64  `json:"expiry"`
 }
+
+type URLShortenResponse struct {
+	ShortURL string `json:"short_url"`
+}

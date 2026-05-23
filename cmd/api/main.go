@@ -10,6 +10,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/nisarg1511/shortly/internal/handlers"
+	"github.com/nisarg1511/shortly/internal/middleware"
 	"github.com/nisarg1511/shortly/internal/models"
 	"github.com/nisarg1511/shortly/internal/services"
 	"github.com/nisarg1511/shortly/internal/store"
@@ -53,7 +54,7 @@ func main() {
 	mux := http.NewServeMux()
 	server := &http.Server{
 		Addr:         app.Config.Address,
-		Handler:      mux,
+		Handler:      middleware.RequestLogMiddleWare(middleware.RecoveryMiddleWare(mux)),
 		ReadTimeout:  time.Second * 10,
 		WriteTimeout: time.Second * 30,
 		IdleTimeout:  time.Minute,

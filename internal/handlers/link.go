@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -8,11 +9,17 @@ import (
 	"os"
 
 	"github.com/nisarg1511/shortly/internal/models"
-	"github.com/nisarg1511/shortly/internal/services"
 )
 
+// linkServicer is satisfied by *services.LinkService in production
+// and by a mock in tests.
+type linkServicer interface {
+	Shorten(ctx context.Context, req models.URLShortenRequest) (string, error)
+	GetURLFromHash(ctx context.Context, hash string) (string, error)
+}
+
 type Link struct {
-	svc *services.LinkService
+	svc linkServicer
 }
 
 const (
@@ -21,7 +28,7 @@ const (
 	statusFailed     = "Failed!"
 )
 
-func NewLink(svc *services.LinkService) *Link {
+func NewLink(svc linkServicer) *Link {
 	return &Link{
 		svc: svc,
 	}
@@ -101,6 +108,5 @@ func (l *Link) Redirect(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-	w.WriteHeader(http.StatusTemporaryRedirect)
 	http.Redirect(w, r, longURL, http.StatusTemporaryRedirect)
 }

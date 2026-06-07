@@ -70,6 +70,6 @@ func main() {
 	mux.HandleFunc("GET /{code}", linkHandler.Redirect)
 
 	//Server starting
-	log.Printf("Server running on port:%s\n", port)
+	log.Printf("Application running successfully on port:%s\n", port)
 	log.Fatal(server.ListenAndServe())
 }

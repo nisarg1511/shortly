@@ -1,0 +1,28 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.'
+      - name: Install dependencies
+        run: go mod download
+      - name: Test with the Go CLI
+        run: go test ./...
+      - name: Build
+        run: go build -v ./...
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag shortly:$(date +%s)
